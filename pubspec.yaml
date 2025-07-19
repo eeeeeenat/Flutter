@@ -12,6 +12,8 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   android_intent_plus: ^4.0.1
+  google_maps_flutter: ^2.6.0
+  
 
 dev_dependencies:
   flutter_test:

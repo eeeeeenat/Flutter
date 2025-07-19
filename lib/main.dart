@@ -1,5 +1,6 @@
 import 'dart:io' show Platform, exit;
 import 'package:android_intent_plus/android_intent.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -146,7 +147,7 @@ class _HomeRouteState extends State<HomeRoute> {
                   ),
                   child: const Text('Initialize App', style: TextStyle(fontSize: 20)),
                 ),
-                const SizedBox(height: 25),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () => _showExitDialog(),
                   style: ElevatedButton.styleFrom(
@@ -189,84 +190,109 @@ class _RoutePageState extends State<RoutePage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 10,
-                offset: Offset(0, 4),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 10,
+                      color: Colors.black12,
+                      offset: Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Text('Note: Please ensure that both Wi-Fi and GPS are enabled on your device in order to proceed and access the main features on application.',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SwitchListTile(
-                title: const Text('Wi-Fi (Internet Connection)'),
-                value: isWifiOn,
-                onChanged: (value) {
-                  setState(() {
-                    isWifiOn = value;
-                  });
-                  if (value && Platform.isAndroid) {
-                    final intent = AndroidIntent(
-                      action: 'android.settings.WIFI_SETTINGS',
-                    );
-                    intent.launch();
-                  }
-                },
-                secondary: const Icon(Icons.wifi),
-                activeColor: Colors.white,
-                activeTrackColor: Colors.green,
-              ),
-              SwitchListTile(
-                title: const Text('GPS (Location)'),
-                value: isGpsOn,
-                onChanged: (value) {
-                  setState(() {
-                    isGpsOn = value;
-                  });
-                  if (value && Platform.isAndroid) {
-                    final intent = AndroidIntent(
-                      action: 'android.settings.LOCATION_SOURCE_SETTINGS',
-                    );
-                    intent.launch();
-                  }
-                },
-                secondary: const Icon(Icons.gps_fixed),
-                activeColor: Colors.white,
-                activeTrackColor: Colors.green,
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: (isWifiOn && isGpsOn)
-                    ? () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AnalyzerHomePage(),
+            ),
+            SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SwitchListTile(
+                            title: const Text('Wi-Fi (Internet Connection)'),
+                            value: isWifiOn,
+                            onChanged: (value) {
+                              setState(() {
+                                isWifiOn = value;
+                              });
+                              if (value && Platform.isAndroid) {
+                                final intent = AndroidIntent(
+                                  action: 'android.settings.WIFI_SETTINGS',
+                                );
+                                intent.launch();
+                              }
+                            },
+                            secondary: const Icon(Icons.wifi),
+                            activeColor: Colors.white,
+                            activeTrackColor: Colors.green,
                           ),
-                        );
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.green,
-                  elevation: 3,
-                ),
-                child: const Text(
-                  'Proceed',
-                  style: TextStyle(fontSize: 18),
-                ),
+                          SwitchListTile(
+                            title: const Text('GPS (Location)'),
+                            value: isGpsOn,
+                            onChanged: (value) {
+                              setState(() {
+                                isGpsOn = value;
+                              });
+                              if (value && Platform.isAndroid) {
+                                final intent = AndroidIntent(
+                                  action: 'android.settings.LOCATION_SOURCE_SETTINGS',
+                                );
+                                intent.launch();
+                              }
+                            },
+                            secondary: const Icon(Icons.gps_fixed),
+                            activeColor: Colors.white,
+                            activeTrackColor: Colors.green,
+                          ),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: (isWifiOn && isGpsOn)
+                        ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AnalyzerHomePage(),
+                              ),
+                            );
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      elevation: 3,
+                    ),
+                    child: const Text(
+                      'Proceed',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          ],
+        )
       ),
     );
   }
@@ -295,7 +321,8 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
       buildDashboardPage(),
       ScanningPage(),
       ReportPage(),
-      Center(child: Text("Profile Page")),
+      ProfilePage(),
+      Center(),
     ];
   }
 
@@ -319,7 +346,7 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
               onTap: () {
                 Navigator.pop(context);
               },
-              child: Icon(Icons.arrow_back, color: Colors.green),
+              child: Icon(Icons.arrow_back, color: Colors.white),
             ),
           ],
         ),
@@ -328,7 +355,7 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
         
         Center(
           child: Text(
-            "Dashboard",
+            "HOMEPAGE",
             style: TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.bold,
@@ -350,6 +377,8 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
           ),
           child: Column(
             children: [
+              Text("RECENT FINDINGS", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              SizedBox(height: 5),
               buildNutrientRow("Nitrogen", nitrogen, Colors.green),
               buildNutrientRow("Potassium", potassium, Colors.green),
               buildNutrientRow("Phosphorus", phosphorus, Colors.green),
@@ -358,9 +387,32 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
           ),
         ),
 
-        SizedBox(height: 25),
-
         // Field details container
+        SizedBox(height: 15),
+        Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: Colors.white,
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+          ),
+          height: 300, // Required for map to render
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: LatLng(14.5995, 120.9842), // Example: Manila
+                zoom: 12,
+              ),
+              mapType: MapType.normal,
+              onMapCreated: (GoogleMapController controller) {
+                // Optionally store the controller
+              },
+            ),
+          ),
+        ),
+        SizedBox(height: 10),
+
         Container(
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -370,19 +422,24 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
           ),
           child: Row(
             children: [
-              Icon(Icons.location_on, color: Colors.green),
-              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Field 1", style: TextStyle(fontWeight: FontWeight.bold)),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, color: Colors.green),
+                        SizedBox(width: 10),
+                        Text("Field 1", style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(height: 5),
+                      ],
+                    ),
                     SizedBox(height: 5),
                     Row(
                       children: [
                         Icon(Icons.spa, size: 40, color: Colors.green),
                         SizedBox(width: 10),
-                        Expanded(child: Text("Add compost to improve soil health")),
+                        Expanded(child: Text("Add compost to improve soil health.")),
                       ],
                     ),
                   ],
@@ -402,7 +459,7 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text(label, style: TextStyle(fontSize: 16))),
+          Expanded(flex: 2, child: Text(label, style: TextStyle(fontSize: 12))),
           Expanded(
             flex: 5,
             child: LinearProgressIndicator(
@@ -431,9 +488,9 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.radar), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.science), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: ""),
         ],
       ),
     );
@@ -472,10 +529,10 @@ class _ScanningPageState extends State<ScanningPage> {
           hasAnalyzed = true;
 
           // Fake results
-          nitrogen = "Normal";
-          phosphorus = "High";
-          potassium = "Low";
-          ph = "Low";
+          nitrogen = "90%";
+          phosphorus = "50%";
+          potassium = "70%";
+          ph = "40%";
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Soil analysis complete!')),
@@ -522,7 +579,7 @@ Widget build(BuildContext context) {
             onTap: () {
               Navigator.pop(context);
             },
-            child: const Icon(Icons.arrow_back, color: Colors.green),
+            child: const Icon(Icons.arrow_back, color: Colors.white),
           ),
         ),
 
@@ -531,7 +588,7 @@ Widget build(BuildContext context) {
         // Centered title
         const Center(
           child: Text(
-            "Start Soil Analysis",
+            "SOIL ANALYZING",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 30,
@@ -540,7 +597,18 @@ Widget build(BuildContext context) {
             ),
           ),
         ),
-          SizedBox(height: 70),
+          SizedBox(height: 50),
+
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+            ),
+          ),
+
+          SizedBox(height: 10),
 
           // Analysis button with timer
           GestureDetector(
@@ -667,16 +735,24 @@ class ReportPage extends StatelessWidget {
                 onTap: () {
                   Navigator.pop(context);
                 },
-                child: Icon(Icons.arrow_back, color: Colors.green),
+                child: Icon(Icons.arrow_back, color: Colors.white),
               ),
               SizedBox(width: 8),
-              Align( alignment: Alignment.center,
-              child: Text(
-                "History",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            )
+              SizedBox(height: 15),
+              Align(alignment: Alignment.center,
+            ),
           ],
+        ),
+        Center(
+          child: Text(
+            "HISTORY",
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              height: 1,
+            ),
+          ),
         ),
         SizedBox(height: 20),
         reportCard(
@@ -711,7 +787,12 @@ class ReportPage extends StatelessWidget {
   }
 }
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage>{
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -725,14 +806,16 @@ class ProfilePage extends StatelessWidget {
             children: [
               GestureDetector(
                 onTap: () => Navigator.pop(context),
-                child: Icon(Icons.arrow_back, color: Colors.green),
+                child: Icon(Icons.arrow_back, color: Colors.white),
               ),
               SizedBox(width: 10),
-              Text(
-                "Profile",
+            ],
+          ),
+          Center(
+            child: Text(
+                "PROFILE",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            ],
           ),
           SizedBox(height: 30),
 
@@ -753,9 +836,9 @@ class ProfilePage extends StatelessWidget {
                   child: Icon(Icons.person, size: 50, color: Colors.green),
                 ),
                 SizedBox(height: 12),
-                Text("John Doe", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text("John Earl", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
-                Text("farmer@example.com", style: TextStyle(color: Colors.grey[600])),
+                Text("noelitingancamacho@example.com", style: TextStyle(color: Colors.grey[600])),
               ],
             ),
           ),
@@ -766,7 +849,12 @@ class ProfilePage extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.settings, color: Colors.green),
             title: Text("Settings"),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder:(context) => SettingsPage())
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.logout, color: Colors.red),
@@ -783,4 +871,182 @@ class ProfilePage extends StatelessWidget {
       ),
     );
   }
+}
+
+class SettingsPage extends StatefulWidget {
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  bool autoCalibrate = true;
+  bool darkMode = false;
+
+  final TextEditingController nitrogenOffset = TextEditingController();
+  final TextEditingController phosphorusOffset = TextEditingController();
+  final TextEditingController potassiumOffset = TextEditingController();
+
+  @override
+  void dispose() {
+    nitrogenOffset.dispose();
+    phosphorusOffset.dispose();
+    potassiumOffset.dispose();
+    super.dispose();
+  }
+
+  void _exportData() {
+    // Add CSV or PDF export logic here
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Exporting data...")),
+    );
+  }
+
+  void _resetCalibration() {
+    setState(() {
+      nitrogenOffset.text = "";
+      phosphorusOffset.text = "";
+      potassiumOffset.text = "";
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Calibration values reset")),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Settings"),
+        backgroundColor: Colors.green,
+        centerTitle: true,
+      ),
+     
+      body: ListView(
+        padding: EdgeInsets.all(16),
+        children: [
+          
+
+          // 🌿 Sensor Calibration
+          Text("Component Calibration", style: sectionHeaderStyle),
+          SizedBox(height: 10),
+          calibrationField("Nitrogen Offset", nitrogenOffset),
+          calibrationField("Phosphorus Offset", phosphorusOffset),
+          calibrationField("Potassium Offset", potassiumOffset),
+          SwitchListTile(
+            title: Text("Auto Calibrate on Launch"),
+            value: autoCalibrate,
+            onChanged: (value) {
+              setState(() {
+                autoCalibrate = value;
+              });
+            },
+            activeColor: Colors.white,
+            activeTrackColor: Colors.green,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _resetCalibration,
+                icon: Icon(Icons.refresh),
+                label: Text("Reset"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  // Save calibration values to storage or backend
+                },
+                icon: Icon(Icons.save),
+                label: Text("Save"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white),
+              ),
+            ],
+          ),
+
+          Divider(height: 40),
+
+          // ⚙️ Preferences
+          Text("App Preferences", style: sectionHeaderStyle),
+          SwitchListTile(
+            title: Text("Dark Mode"),
+            value: darkMode,
+            onChanged: (value) {
+              setState(() {
+                darkMode = value;
+              });
+            },
+            activeColor: Colors.white,
+            activeTrackColor: Colors.green,
+          ),
+
+          Divider(height: 40),
+
+          // 📤 Export Options
+          Text("Data Management", style: sectionHeaderStyle),
+          ElevatedButton.icon(
+            onPressed: _exportData,
+            icon: Icon(Icons.download),
+            label: Text("Export Soil Reports"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white),
+          ),
+          SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: () {
+              // Clear local history or show confirmation dialog
+            },
+            icon: Icon(Icons.delete),
+            label: Text("Clear History"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white),
+          ),
+
+          Divider(height: 40),
+
+          // ❓ About & Support
+          Text("About", style: sectionHeaderStyle),
+          ListTile(
+            leading: Icon(Icons.info_outline),
+            title: Text("Version 1.0.0"),
+            subtitle: Text("Soil Macronutrient Analyzer"),
+          ),
+          ListTile(
+            leading: Icon(Icons.email),
+            title: Text("Send Feedback"),
+            onTap: () {
+              // Add email intent or feedback form
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Reusable TextField for calibration input
+  Widget calibrationField(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+          suffixText: "±",
+        ),
+      ),
+    );
+  }
+
+  TextStyle get sectionHeaderStyle => TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: Colors.green[800],
+  );
 }
