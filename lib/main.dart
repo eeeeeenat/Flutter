@@ -35,19 +35,29 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
+    //loading screen
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[100],
+      backgroundColor: const Color.fromARGB(255, 229, 255, 230),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.eco, size: 100, color: Colors.green[800]),
-            SizedBox(height: 20),
+            
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20), // Apply rounded corners
+            child: Image.asset(
+              'assets/logo.png',
+              width: 130,
+              height: 130,
+              fit: BoxFit.cover,
+            ),
+          ),
+          SizedBox(height: 20),
             Text(
               'Soil Macronutrient Analyzer',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
             CircularProgressIndicator(color: Colors.green),
@@ -89,38 +99,65 @@ class _HomeRouteState extends State<HomeRoute> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: Text("Home")),
+        backgroundColor: const Color.fromARGB(255, 229, 255, 230),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.eco, size: 170, color: Colors.green),
-              SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => RoutePage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  minimumSize: Size(150, 50),
+          child: Container(
+                  height: 500 ,
+                  width: 300,
+                  constraints: const BoxConstraints(minHeight: 400),
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 10,
+                  offset: Offset(0, 6),
                 ),
-                child: const Text('Initialize App', style: TextStyle(fontSize: 20)),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => _showExitDialog(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  minimumSize: Size(150, 50),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 70),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    'assets/logo.png',
+                    width: 130,
+                    height: 130,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                child: const Text('Exit App', style: TextStyle(fontSize: 20)),
-              ),
-            ],
+                const SizedBox(height: 35),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => RoutePage()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(150, 50),
+                  ),
+                  child: const Text('Initialize App', style: TextStyle(fontSize: 20)),
+                ),
+                const SizedBox(height: 25),
+                ElevatedButton(
+                  onPressed: () => _showExitDialog(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(150, 50),
+                  ),
+                  child: const Text('Exit App', style: TextStyle(fontSize: 20)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -137,77 +174,104 @@ class RoutePage extends StatefulWidget {
 class _RoutePageState extends State<RoutePage> {
   bool isWifiOn = false;
   bool isGpsOn = false;
-
-  @override
+  //wifi config
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 229, 255, 230),
       appBar: AppBar(
-      title: Text('Configuration Page'), centerTitle: true),
+        backgroundColor: const Color.fromARGB(255, 229, 255, 230),
+        title: const Text(
+          'Configuration Page',
+          style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            SwitchListTile(
-              title: Text('Wi-Fi(Internet Connection)'),
-              value: isWifiOn,
-              onChanged: (value) {
-                setState(() {
-                  isWifiOn = value;
-                });
-
-                if (value && Platform.isAndroid) {
-                final intent = AndroidIntent(
-                action: 'android.settings.WIFI_SETTINGS',
-                );
-                intent.launch();
-                }
-              },
-              secondary: Icon(Icons.wifi),
-              activeColor: Colors.white,
-              activeTrackColor: Colors.green,
-              
-            ),
-            SwitchListTile(
-              title: Text('GPS(Location)'),
-              value: isGpsOn,
-              onChanged: (value) {
-                setState(() {
-                  isGpsOn = value;
-                });
-                if (value && Platform.isAndroid) {
-                final intent = AndroidIntent(
-                  action: 'android.settings.LOCATION_SOURCE_SETTINGS',
-                );
-                intent.launch();
-              }
-              },
-              secondary: Icon(Icons.gps_fixed),
-              activeColor: Colors.white,
-              activeTrackColor: Colors.green,
-            ),
-            SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: (isWifiOn && isGpsOn)
-                  ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => AnalyzerHomePage()),
-                      );
-                    }
-                  : null,
-              child: Text('Proceed'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50),
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.green,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 10,
+                offset: Offset(0, 4),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SwitchListTile(
+                title: const Text('Wi-Fi (Internet Connection)'),
+                value: isWifiOn,
+                onChanged: (value) {
+                  setState(() {
+                    isWifiOn = value;
+                  });
+                  if (value && Platform.isAndroid) {
+                    final intent = AndroidIntent(
+                      action: 'android.settings.WIFI_SETTINGS',
+                    );
+                    intent.launch();
+                  }
+                },
+                secondary: const Icon(Icons.wifi),
+                activeColor: Colors.white,
+                activeTrackColor: Colors.green,
+              ),
+              SwitchListTile(
+                title: const Text('GPS (Location)'),
+                value: isGpsOn,
+                onChanged: (value) {
+                  setState(() {
+                    isGpsOn = value;
+                  });
+                  if (value && Platform.isAndroid) {
+                    final intent = AndroidIntent(
+                      action: 'android.settings.LOCATION_SOURCE_SETTINGS',
+                    );
+                    intent.launch();
+                  }
+                },
+                secondary: const Icon(Icons.gps_fixed),
+                activeColor: Colors.white,
+                activeTrackColor: Colors.green,
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: (isWifiOn && isGpsOn)
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AnalyzerHomePage(),
+                          ),
+                        );
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.green,
+                  elevation: 3,
+                ),
+                child: const Text(
+                  'Proceed',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
 
 class AnalyzerHomePage extends StatefulWidget {
   @override
@@ -241,79 +305,97 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
     });
   }
 
-  Widget buildDashboardPage() {
-    return Container(
-      color: Color(0xFFF4FFF4),
-      padding: EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+ Widget buildDashboardPage() {
+  return Container(
+    color: Color(0xFFF4FFF4),
+    padding: EdgeInsets.all(20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+                                                                              // Back icon row
+        Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Icon(Icons.arrow_back, color: Colors.green),
+            ),
+          ],
+        ),
+        
+                                                                             // Add spacing and center the Dashboard title
+        
+        Center(
+          child: Text(
+            "Dashboard",
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              height: 1,
+            ),
+          ),
+        ),
+        
+        SizedBox(height: 20),
+
+                                                                               // Nutrient container
+        Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: Colors.white,
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+          ),
+          child: Column(
             children: [
-              GestureDetector(
-            onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Icon(Icons.arrow_back, color: Colors.green),
-            ),
-             Align(alignment: Alignment.center,
-              child: Text("Dashboard", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
-             )
-            ]
+              buildNutrientRow("Nitrogen", nitrogen, Colors.green),
+              buildNutrientRow("Potassium", potassium, Colors.green),
+              buildNutrientRow("Phosphorus", phosphorus, Colors.green),
+              buildNutrientRow("Acidity", acidity, Colors.green),
+            ],
           ),
-          SizedBox(height: 100),
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-            ),
-            child: Column(
-              children: [
-                
-                buildNutrientRow("Nitrogen", nitrogen, Colors.green),
-                buildNutrientRow("Potassium", potassium, Colors.green),
-                buildNutrientRow("Phosphorus", phosphorus, Colors.green),
-                buildNutrientRow("Acidity", acidity, Colors.green),
-              ],
-            ),
+        ),
+
+        SizedBox(height: 25),
+
+        // Field details container
+        Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: Colors.white,
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
           ),
-          SizedBox(height: 25),
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.location_on, color: Colors.green),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Field 1", style: TextStyle(fontWeight: FontWeight.bold)),
-                      SizedBox(height: 5),
-                      Row(
-                        children: [
-                          Icon(Icons.spa, size: 40, color: Colors.green),
-                          SizedBox(width: 10),
-                          Expanded(child: Text("Add compost to improve soil health")),
-                        ],
-                      ),
-                    ],
-                  ),
+          child: Row(
+            children: [
+              Icon(Icons.location_on, color: Colors.green),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Field 1", style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Icon(Icons.spa, size: 40, color: Colors.green),
+                        SizedBox(width: 10),
+                        Expanded(child: Text("Add compost to improve soil health")),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget buildNutrientRow(String label, double value, Color color) {
     return Padding(
@@ -426,26 +508,38 @@ class _ScanningPageState extends State<ScanningPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Color(0xFFF4FFF4),
-      padding: EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Icon(Icons.arrow_back, color: Colors.green),
-              ),
-              SizedBox(width: 10),
-              Center(child: Text("Start Soil Analysis", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),)),
-            ],
+@override
+Widget build(BuildContext context) {
+  return Container(
+    color: const Color(0xFFF4FFF4),
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      children: [
+        // Back button aligned to the left
+        Align(
+          alignment: Alignment.centerLeft,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Icon(Icons.arrow_back, color: Colors.green),
           ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Centered title
+        const Center(
+          child: Text(
+            "Start Soil Analysis",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
           SizedBox(height: 70),
 
           // Analysis button with timer
@@ -555,6 +649,9 @@ class ReportPage extends StatelessWidget {
     );
   }
 
+
+  
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -609,6 +706,80 @@ class ReportPage extends StatelessWidget {
           ),
           ]
         )
+      ),
+    );
+  }
+}
+
+class ProfilePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Color(0xFFF4FFF4),
+      padding: EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top Header
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Icon(Icons.arrow_back, color: Colors.green),
+              ),
+              SizedBox(width: 10),
+              Text(
+                "Profile",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          SizedBox(height: 30),
+
+          // Profile Container
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+            ),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.green.shade100,
+                  child: Icon(Icons.person, size: 50, color: Colors.green),
+                ),
+                SizedBox(height: 12),
+                Text("John Doe", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                SizedBox(height: 4),
+                Text("farmer@example.com", style: TextStyle(color: Colors.grey[600])),
+              ],
+            ),
+          ),
+
+          SizedBox(height: 30),
+
+          // Settings and Logout
+          ListTile(
+            leading: Icon(Icons.settings, color: Colors.green),
+            title: Text("Settings"),
+            onTap: () {},
+          ),
+          ListTile(
+            leading: Icon(Icons.logout, color: Colors.red),
+            title: Text("Logout"),
+            onTap: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => SoilMacronutrientAnalyzerApp()),
+                (route) => false,
+              );
+            },
+          ),
+        ],
       ),
     );
   }
