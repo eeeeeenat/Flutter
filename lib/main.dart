@@ -1,4 +1,4 @@
-import 'dart:io' show Platform, exit;
+                                  import 'dart:io' show Platform, exit;
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/material.dart';
@@ -513,6 +513,8 @@ class _ScanningPageState extends State<ScanningPage> {
   String potassium = "";
   String ph = "";
 
+  String? selectedField;
+
   void startAnalysis() {
     setState(() {
       isAnalyzing = true;
@@ -553,34 +555,33 @@ class _ScanningPageState extends State<ScanningPage> {
     return Padding(
   padding: const EdgeInsets.symmetric(vertical: 6),
   child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Container(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(" FINDINGS", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
-            ),
-            SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.green),
-                SizedBox(width: 8),
-                Text(
-                  label,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            Text(
-              status,
-              style: TextStyle(fontSize: 16),
-            ),
-          ],
-        ),
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    SizedBox(height: 8), // Moved outside the Row for proper vertical spacing
+    Container(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green),
+              SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          Text(
+            status,
+            style: TextStyle(fontSize: 16),
+          ),
+        ],
       ),
-    ],
-  ),
+    ),
+  ],
+),
+
 );
 
   }
@@ -619,15 +620,45 @@ Widget build(BuildContext context) {
         ),
           SizedBox(height: 50),
 
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-            ),
-            
-          ),
+         Container(
+  padding: EdgeInsets.all(16),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(15),
+    color: Colors.white,
+    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Please select a specific field before analyzing.',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+      const SizedBox(height: 10),
+      DropdownButton<String>(
+        isExpanded: true,
+        hint: const Text('Select Field'),
+        value: selectedField,
+        items: List.generate(5, (index) {
+          String field = 'Field ${index + 1}';
+          return DropdownMenuItem(
+            value: field,
+            child: Text(field),
+          );
+        }),
+        onChanged: (value) {
+          setState(() {
+            selectedField = value;
+          });
+        },
+      ),
+    ],
+  ),
+),
 
           SizedBox(height: 10),
 
@@ -777,7 +808,7 @@ class ReportPage extends StatelessWidget {
         ),
         SizedBox(height: 20),
         reportCard(
-            date: "April 26, 2025",
+            date: "July 21, 2025",
             nutrients: [
               {'label': 'Nitrogen', 'value': 90.0},
               {'label': 'Potassium', 'value': 50.0},
@@ -859,7 +890,7 @@ class _ProfilePageState extends State<ProfilePage>{
                 SizedBox(height: 12),
                 Text("John Earl", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
-                Text("noelitingancamacho@example.com", style: TextStyle(color: Colors.grey[600])),
+                Text("earlcamacho@gmail.com", style: TextStyle(color: Colors.grey[600])),
               ],
             ),
           ),
