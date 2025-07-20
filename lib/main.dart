@@ -1,4 +1,4 @@
-                                  import 'dart:io' show Platform, exit;
+import 'dart:io' show Platform, exit;
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/material.dart';
