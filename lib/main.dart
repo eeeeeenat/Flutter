@@ -355,7 +355,7 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
         
         Center(
           child: Text(
-            "HOMEPAGE",
+            "HOME PAGE",
             style: TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.bold,
@@ -528,6 +528,7 @@ class _ScanningPageState extends State<ScanningPage> {
           isAnalyzing = false;
           hasAnalyzed = true;
 
+
           // Fake results
           nitrogen = "90%";
           phosphorus = "50%";
@@ -550,19 +551,38 @@ class _ScanningPageState extends State<ScanningPage> {
 
   Widget nutrientResult(String label, String status) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
-          ]),
-          Text(status, style: TextStyle(fontSize: 16)),
-        ],
+  padding: const EdgeInsets.symmetric(vertical: 6),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(" FINDINGS", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green),
+                SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            Text(
+              status,
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
       ),
-    );
+    ],
+  ),
+);
+
   }
 
 @override
@@ -606,6 +626,7 @@ Widget build(BuildContext context) {
               color: Colors.white,
               boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
             ),
+            
           ),
 
           SizedBox(height: 10),
@@ -916,8 +937,8 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Settings"),
-        backgroundColor: Colors.green,
+        title: Text("SETTINGS"),
+        backgroundColor: Color.fromARGB(255, 229, 255, 230),
         centerTitle: true,
       ),
      
