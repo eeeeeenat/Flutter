@@ -2,7 +2,28 @@ import 'dart:io' show Platform, exit;
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/material.dart';
+import 'db_helper.dart';
 import 'dart:async';
+
+final dbHelper = DBHelper();
+
+Future<void> saveTestResult(double nitrogen, double phosphorus, double potassium) async {
+  // Example simple recommendation logic
+  String recommendation = "";
+  if (nitrogen < 10) recommendation += "Add Nitrogen-rich fertilizer. ";
+  if (phosphorus < 10) recommendation += "Add Phosphorus-rich fertilizer. ";
+  if (potassium < 10) recommendation += "Add Potassium-rich fertilizer. ";
+  if (recommendation.isEmpty) recommendation = "Soil nutrients are balanced.";
+
+  await dbHelper.insertTest({
+    "nitrogen": nitrogen,
+    "phosphorus": phosphorus,
+    "potassium": potassium,
+    "date": DateTime.now().toIso8601String(),
+    "recommendation": recommendation,
+  });
+}
+
 
 void main() {
   runApp(SoilMacronutrientAnalyzerApp());
@@ -300,180 +321,232 @@ class _RoutePageState extends State<RoutePage> {
 
 
 class AnalyzerHomePage extends StatefulWidget {
+  const AnalyzerHomePage({super.key});
+
   @override
   _AnalyzerHomePageState createState() => _AnalyzerHomePageState();
 }
 
 class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
-  int _selectedIndex = 0;
+  // Nutrient values (initialized as null until loaded from DB)
+  double? nitrogen;
+  double? phosphorus;
+  double? potassium;
+  double? acidity;
+  String recommendation = "No test results yet.";
 
-  double nitrogen = 90;
-  double potassium = 50;
-  double phosphorus = 70;
-  double acidity = 40;
-
-  List<Widget> _pages = [];
+  final dbHelper = DBHelper(); // SQLite helper instance
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      buildDashboardPage(),
-      ScanningPage(),
-      ReportPage(),
-      ProfilePage(),
-      Center(),
-    ];
+    _loadLatestTest();
   }
 
-  void _onNavBarTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  // Load the latest test result from database
+  Future<void> _loadLatestTest() async {
+    final tests = await dbHelper.getTests();
+    if (tests.isNotEmpty) {
+      final latest = tests.first; // most recent test
+      setState(() {
+        nitrogen = latest['nitrogen'];
+        phosphorus = latest['phosphorus'];
+        potassium = latest['potassium'];
+        acidity = latest['acidity'] ?? 0; 
+        recommendation = latest['recommendation'];
+      });
+    }
   }
 
- Widget buildDashboardPage() {
-  return Container(
-    color: Color(0xFFF4FFF4),
-    padding: EdgeInsets.all(20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-                                                                              // Back icon row
-        Row(
+  // ✅ Main build method
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: buildDashboardPage(),
+    );
+  }
+
+  // Dashboard content
+  Widget buildDashboardPage() {
+    return SingleChildScrollView(
+      child: Container(
+        color: const Color(0xFFF4FFF4),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Icon(Icons.arrow_back, color: Colors.white),
+            // Back button row
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.arrow_back, color: Colors.black),
+                ),
+              ],
+            ),
+
+            Center(
+              child: Text(
+                "HOME PAGE",
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  height: 1,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Nutrient container
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                color: Colors.white,
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+              ),
+              child: Column(
+                children: [
+                  const Text("RECENT FINDINGS",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  const SizedBox(height: 5),
+                  buildNutrientRow("Nitrogen", nitrogen, Colors.green),
+                  buildNutrientRow("Phosphorus", phosphorus, Colors.green),
+                  buildNutrientRow("Potassium", potassium, Colors.green),
+                  buildNutrientRow("Acidity", acidity, Colors.green),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Recommendation: $recommendation",
+                    style:
+                        const TextStyle(fontSize: 14, color: Colors.black87),
+                  ),
+                ],
+              ),
+            ),
+
+            // Field details container (Google Map)
+            const SizedBox(height: 15),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                color: Colors.white,
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+              ),
+              height: 300,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: GoogleMap(
+                  initialCameraPosition: const CameraPosition(
+                    target: LatLng(14.5995, 120.9842), // Example: Manila
+                    zoom: 12,
+                  ),
+                  mapType: MapType.normal,
+                  onMapCreated: (GoogleMapController controller) {
+                    // Optionally store the controller
+                  },
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Recommendation container
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                color: Colors.white,
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.spa, size: 40, color: Colors.green),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(recommendation),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        
-                                                                             // Add spacing and center the Dashboard title
-        
-        Center(
-          child: Text(
-            "HOME PAGE",
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-              height: 1,
-            ),
-          ),
-        ),
-        
-        SizedBox(height: 20),
+      ),
+    );
+  }
 
-                                                                               // Nutrient container
-        Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: Colors.white,
-            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-          ),
-          child: Column(
-            children: [
-              Text("RECENT FINDINGS", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              SizedBox(height: 5),
-              buildNutrientRow("Nitrogen", nitrogen, Colors.green),
-              buildNutrientRow("Potassium", potassium, Colors.green),
-              buildNutrientRow("Phosphorus", phosphorus, Colors.green),
-              buildNutrientRow("Acidity", acidity, Colors.green),
-            ],
-          ),
-        ),
-
-        // Field details container
-        SizedBox(height: 15),
-        Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: Colors.white,
-            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-          ),
-          height: 300, // Required for map to render
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: LatLng(14.5995, 120.9842), // Example: Manila
-                zoom: 12,
-              ),
-              mapType: MapType.normal,
-              onMapCreated: (GoogleMapController controller) {
-                // Optionally store the controller
-              },
-            ),
-          ),
-        ),
-        SizedBox(height: 10),
-
-        Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: Colors.white,
-            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, color: Colors.green),
-                        SizedBox(width: 10),
-                        Text("Field 1", style: TextStyle(fontWeight: FontWeight.bold)),
-                        SizedBox(height: 5),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    Row(
-                      children: [
-                        Icon(Icons.spa, size: 40, color: Colors.green),
-                        SizedBox(width: 10),
-                        Expanded(child: Text("Add compost to improve soil health.")),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+  // Reusable nutrient row widget
+  Widget buildNutrientRow(String name, double? value, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(name),
+        Text(
+          value != null ? value.toStringAsFixed(2) : "N/A",
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
         ),
       ],
-    ),
-  );
+    );
+  }
 }
 
-
-  Widget buildNutrientRow(String label, double value, Color color) {
+   Widget buildNutrientRow(String label, double? value, Color color) {
+    if (value == null) return SizedBox.shrink(); // no widget if no data yet
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text(label, style: TextStyle(fontSize: 12))),
+          Expanded(
+            flex: 2,
+            child: Text(label, style: TextStyle(fontSize: 12)),
+          ),
           Expanded(
             flex: 5,
             child: LinearProgressIndicator(
-              value: value / 100,
+              value: value / 100, // scale 0–100
               backgroundColor: Colors.grey[200],
               valueColor: AlwaysStoppedAnimation<Color>(color),
               minHeight: 10,
             ),
           ),
           SizedBox(width: 10),
-          Text("${value.toInt()}%"),
+          Text(value.toStringAsFixed(1)),
         ],
       ),
     );
+  }
+
+class MainPage extends StatefulWidget {
+  const MainPage({super.key});
+  @override
+  // ignore: library_private_types_in_public_api
+  _MainPageState createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  int _selectedIndex = 0;
+
+  // Define your pages here
+  final List<Widget> _pages = [
+    MainPage(),       // index 0
+    ScanningPage(),   // index 1
+    HistoryPage(),    // index 2
+    SettingsPage(),   // index 3
+  ];
+
+  void _onNavBarTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
@@ -486,16 +559,18 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
         unselectedItemColor: Colors.grey,
         onTap: _onNavBarTapped,
         type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.science), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: ""),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.science), label: "Scan"),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
         ],
       ),
     );
   }
 }
+
+
 
 class ScanningPage extends StatefulWidget {
   @override
@@ -508,12 +583,12 @@ class _ScanningPageState extends State<ScanningPage> {
   int countdown = 5;
   Timer? _timer;
 
-  String nitrogen = "";
-  String phosphorus = "";
-  String potassium = "";
-  String ph = "";
+  double? nitrogen;
+  double? phosphorus;
+  double? potassium;
+  double? ph;
 
-  String? selectedField;
+  final dbHelper = DBHelper();
 
   void startAnalysis() {
     setState(() {
@@ -530,19 +605,59 @@ class _ScanningPageState extends State<ScanningPage> {
           isAnalyzing = false;
           hasAnalyzed = true;
 
+          // TODO: Replace these with actual sensor values
+          nitrogen = 12.5;
+          phosphorus = 8.7;
+          potassium = 15.2;
+          ph = 6.3;
 
-          // Fake results
-          nitrogen = "90%";
-          phosphorus = "50%";
-          potassium = "70%";
-          ph = "40%";
+          _saveResults();
 
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Soil analysis complete!')),
+            SnackBar(content: Text('Soil analysis complete & saved!')),
           );
         }
       });
     });
+  }
+
+  Future<void> _saveResults() async {
+    String recommendation = "";
+    if ((nitrogen ?? 0) < 10) recommendation += "Add Nitrogen-rich fertilizer. ";
+    if ((phosphorus ?? 0) < 10) recommendation += "Add Phosphorus-rich fertilizer. ";
+    if ((potassium ?? 0) < 10) recommendation += "Add Potassium-rich fertilizer. ";
+    if (recommendation.isEmpty) recommendation = "Soil nutrients are balanced.";
+
+    await dbHelper.insertTest({
+      "nitrogen": nitrogen ?? 0,
+      "phosphorus": phosphorus ?? 0,
+      "potassium": potassium ?? 0,
+      "date": DateTime.now().toIso8601String(),
+      "recommendation": recommendation,
+    });
+  }
+
+  Widget buildNutrientRow(String label, double? value, Color color) {
+    if (value == null) return SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Expanded(flex: 2, child: Text(label, style: TextStyle(fontSize: 12))),
+          Expanded(
+            flex: 5,
+            child: LinearProgressIndicator(
+              value: value / 100,
+              backgroundColor: Colors.grey[200],
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 10,
+            ),
+          ),
+          SizedBox(width: 10),
+          Text(value.toStringAsFixed(1)),
+        ],
+      ),
+    );
   }
 
   @override
@@ -551,294 +666,90 @@ class _ScanningPageState extends State<ScanningPage> {
     super.dispose();
   }
 
-  Widget nutrientResult(String label, String status) {
-    return Padding(
-  padding: const EdgeInsets.symmetric(vertical: 6),
-  child: Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    SizedBox(height: 8), // Moved outside the Row for proper vertical spacing
-    Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.green),
-              SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          Text(
-            status,
-            style: TextStyle(fontSize: 16),
-          ),
-        ],
-      ),
-    ),
-  ],
-),
-
-);
-
-  }
-
-@override
-Widget build(BuildContext context) {
-  return Container(
-    color: const Color(0xFFF4FFF4),
-    padding: const EdgeInsets.all(20),
-    child: Column(
-      children: [
-        // Back button aligned to the left
-        Align(
-          alignment: Alignment.centerLeft,
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: const Icon(Icons.arrow_back, color: Colors.white),
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Centered title
-        const Center(
-          child: Text(
-            "SOIL ANALYZING",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-        ),
-          SizedBox(height: 50),
-
-         Container(
-  padding: EdgeInsets.all(16),
-  decoration: BoxDecoration(
-    borderRadius: BorderRadius.circular(15),
-    color: Colors.white,
-    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        'Please select a specific field before analyzing.',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-      ),
-      const SizedBox(height: 10),
-      DropdownButton<String>(
-        isExpanded: true,
-        hint: const Text('Select Field'),
-        value: selectedField,
-        items: List.generate(5, (index) {
-          String field = 'Field ${index + 1}';
-          return DropdownMenuItem(
-            value: field,
-            child: Text(field),
-          );
-        }),
-        onChanged: (value) {
-          setState(() {
-            selectedField = value;
-          });
-        },
-      ),
-    ],
-  ),
-),
-
-          SizedBox(height: 10),
-
-          // Analysis button with timer
-          GestureDetector(
-            onTap: isAnalyzing ? null : startAnalysis,
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 20),
-              decoration: BoxDecoration(
-                color: isAnalyzing ? Colors.grey : Colors.green,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Row(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Soil Scanning")),
+      body: Center(
+        child: isAnalyzing
+            ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.arrow_forward, color: Colors.white),
-                  SizedBox(width: 10),
-                  Text(
-                    isAnalyzing
-                        ? "Analyzing... ($countdown)"
-                        : "Start Soil Analysis",
-                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  CircularProgressIndicator(),
+                  SizedBox(height: 20),
+                  Text("Analyzing... $countdown s"),
+                ],
+              )
+            : hasAnalyzed
+                ? Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        buildNutrientRow("Nitrogen", nitrogen, Colors.green),
+                        buildNutrientRow("Phosphorus", phosphorus, Colors.blue),
+                        buildNutrientRow("Potassium", potassium, Colors.orange),
+                        buildNutrientRow("pH", ph, Colors.purple),
+                      ],
+                    ),
+                  )
+                : ElevatedButton(
+                    onPressed: startAnalysis,
+                    child: Text("Start Soil Analysis"),
                   ),
-                ],
-              ),
-            ),
-          ),
-
-          SizedBox(height: 40),
-
-          if (hasAnalyzed)
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black12),
-              ),
-              child: Column(
-                children: [
-                  nutrientResult("Nitrogen", nitrogen),
-                  nutrientResult("Phosphorus", phosphorus),
-                  nutrientResult("Potassium", potassium),
-                  nutrientResult("pH", ph),
-                ],
-              ),
-            ),
-        ],
       ),
     );
   }
 }
 
+class HistoryPage extends StatefulWidget {
+  @override
+  _HistoryPageState createState() => _HistoryPageState();
+}
+class _HistoryPageState extends State<HistoryPage> {
+  final dbHelper = DBHelper();
+  List<Map<String, dynamic>> tests = [];
 
-class ReportPage extends StatelessWidget {
-  Widget nutrientBar(String label, double percent) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Container(
-            width: 80,
-            child: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          Expanded(
-            child: LinearProgressIndicator(
-              value: percent / 100,
-              backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-              minHeight: 10,
-            ),
-          ),
-          SizedBox(width: 8),
-          Text("${percent.toInt()}%"),
-        ],
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _loadTests();
   }
 
-  Widget reportCard({
-    required String date,
-    bool showView = false,
-    required List<Map<String, dynamic>> nutrients,
-  }) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.black12),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment:
-                showView ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
-            children: [
-              Text(date, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              if (showView) Text("View >", style: TextStyle(color: Colors.black54)),
-            ],
-          ),
-          SizedBox(height: 12),
-          ...nutrients.map((n) => nutrientBar(n['label'], n['value'])).toList(),
-        ],
-      ),
-    );
+  Future<void> _loadTests() async {
+    final data = await dbHelper.getTests();
+    setState(() {
+      tests = data;
+    });
   }
-
-
-  
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Color(0xFFF4FFF4),
-      padding: EdgeInsets.all(16),
-      child: SingleChildScrollView(
-        child:  Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-          children: [
-            GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Icon(Icons.arrow_back, color: Colors.white),
-              ),
-              SizedBox(width: 8),
-              SizedBox(height: 15),
-              Align(alignment: Alignment.center,
+    return Scaffold(
+      appBar: AppBar(title: Text("Soil Test History")),
+      body: tests.isEmpty
+          ? Center(child: Text("No test records found."))
+          : ListView.builder(
+              itemCount: tests.length,
+              itemBuilder: (context, index) {
+                final item = tests[index];
+                return Card(
+                  margin: EdgeInsets.all(8),
+                  child: ListTile(
+                    title: Text("Date: ${item['date']}"),
+                    subtitle: Text(
+                      "N: ${item['nitrogen']} | "
+                      "P: ${item['phosphorus']} | "
+                      "K: ${item['potassium']}\n"
+                      "Recommendation: ${item['recommendation']}",
+                    ),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
-        Center(
-          child: Text(
-            "HISTORY",
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-              height: 1,
-            ),
-          ),
-        ),
-        SizedBox(height: 20),
-        reportCard(
-            date: "July 21, 2025",
-            nutrients: [
-              {'label': 'Nitrogen', 'value': 90.0},
-              {'label': 'Potassium', 'value': 50.0},
-              {'label': 'Phosphorus', 'value': 70.0},
-              {'label': 'Acidity', 'value': 40.0},
-            ],
-          ),
-          reportCard(
-            date: "March 24, 2025",
-            showView: true,
-            nutrients: [
-              {'label': 'Nitrogen', 'value': 50.0},
-              {'label': 'Potassium', 'value': 70.0},
-            ],
-          ),
-           reportCard(
-            date: "Feb 22, 2025",
-            showView: true,
-            nutrients: [
-              {'label': 'Nitrogen', 'value': 40.0},
-              {'label': 'Potassium', 'value': 80.0},
-            ],
-          ),
-          ]
-        )
-      ),
     );
   }
 }
-
 class ProfilePage extends StatefulWidget {
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -1061,7 +972,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
           Divider(height: 40),
 
-          // ❓ About & Support
+          // About & Support
           Text("About", style: sectionHeaderStyle),
           ListTile(
             leading: Icon(Icons.info_outline),
