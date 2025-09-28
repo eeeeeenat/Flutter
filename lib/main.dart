@@ -337,9 +337,17 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
 
   final dbHelper = DBHelper(); // SQLite helper instance
 
+  List<Widget> _pages = [];
   @override
   void initState() {
     super.initState();
+    _pages = [
+      buildDashboardPage(),
+      ScanningPage(),
+      HistoryPage(),
+      ProfilePage(),
+      SettingsPage(),
+    ];
     _loadLatestTest();
   }
 
@@ -524,53 +532,6 @@ class _AnalyzerHomePageState extends State<AnalyzerHomePage> {
       ),
     );
   }
-
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
-  @override
-  // ignore: library_private_types_in_public_api
-  _MainPageState createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  int _selectedIndex = 0;
-
-  // Define your pages here
-  final List<Widget> _pages = [
-    MainPage(),       // index 0
-    ScanningPage(),   // index 1
-    HistoryPage(),    // index 2
-    SettingsPage(),   // index 3
-  ];
-
-  void _onNavBarTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.green,
-        unselectedItemColor: Colors.grey,
-        onTap: _onNavBarTapped,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.science), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: ""),
-        ],
-      ),
-    );
-  }
-}
-
-
 
 class ScanningPage extends StatefulWidget {
   @override
